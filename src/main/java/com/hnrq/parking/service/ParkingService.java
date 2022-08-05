@@ -1,11 +1,13 @@
 package com.hnrq.parking.service;
 
-import com.hnrq.parking.entity.Parking;
 import com.hnrq.parking.exception.ParkingNotFoundException;
+import com.hnrq.parking.model.entity.Parking;
+import com.hnrq.parking.model.mapper.ParkingMapper;
+import com.hnrq.parking.model.request.ParkingRequest;
+import com.hnrq.parking.model.response.ParkingResponse;
 import com.hnrq.parking.repository.ParkingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,60 +16,69 @@ import java.util.UUID;
 @Service
 public class ParkingService {
 
-    private final ParkingRepository parkingRepository;
+//    private final ParkingRepository parkingRepository;
+//
+//    public ParkingService(ParkingRepository parkingRepository) {
+//        this.parkingRepository = parkingRepository;
+//    }
 
-    public ParkingService(ParkingRepository parkingRepository) {
-        this.parkingRepository = parkingRepository;
-    }
-
-    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public List<Parking> findAll() {
-        return parkingRepository.findAll();
-    }
-
+    @Autowired
+    private ParkingRepository parkingRepository;
+    @Autowired
+    private ParkingMapper parkingMapper;
     private static String getUUID() {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
-    @Transactional(readOnly = true)     //
-    public Parking findById(String id) {
-        return parkingRepository.findById(id).orElseThrow(() ->
+    //@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public List<ParkingResponse> findAll() {
+        List<Parking> parkingList = parkingRepository.findAll();
+        return parkingMapper.toParkingResponseList(parkingList);
+    }
+
+    //@Transactional(readOnly = true)     //
+    public ParkingResponse findById(String id) {
+        Parking parking = parkingRepository.findById(id).orElseThrow(() ->
                 new ParkingNotFoundException(id));
+        return parkingMapper.toParkingResponse(parking);
     }
 
-    @Transactional
-    public Parking create(Parking parkingCreate) {
+    //@Transactional
+    public ParkingResponse create(ParkingRequest request) {
         String uuid = getUUID();
-        parkingCreate.setId(uuid);
-        parkingCreate.setEntryDate(LocalDateTime.now());
-        parkingRepository.save(parkingCreate);
-        return parkingCreate;
+        Parking parking = parkingMapper.toParking(request);
+        parking.setId(uuid);
+        parking.setEntryDate(LocalDateTime.now());
+        Parking parkingSaved = parkingRepository.save(parking);
+        return parkingMapper.toParkingResponse(parkingSaved);
     }
 
-    @Transactional
+    //@Transactional
     public void delete(String id) {
         findById(id);
         parkingRepository.deleteById(id);
     }
 
-    @Transactional
-    public Parking update(String id, Parking parkingCreate) {
-        Parking parking = findById(id);
-        parking.setColor(parkingCreate.getColor());
-        parking.setState(parkingCreate.getState());
-        parking.setModel(parkingCreate.getModel());
-        parking.setLicense(parkingCreate.getLicense());
-        parkingRepository.save(parking);
-        return parking;
+    //@Transactional
+    public ParkingResponse update(String id, ParkingRequest request) {
+        Parking parking = parkingRepository.findById(id).orElseThrow(() ->
+                new ParkingNotFoundException(id));
+        parking.setBrand(request.getBrand());
+        parking.setModel(request.getModel());
+        parking.setColor(request.getColor());
+        parking.setLicensePlate(request.getLicensePlate());
+        Parking parkingSaved = parkingRepository.save(parking);
+        return parkingMapper.toParkingResponse(parkingSaved);
     }
 
-    @Transactional
-    public Parking checkOut(String id) {
-        Parking parking = findById(id);
+    //@Transactional
+    public ParkingResponse checkOut(String id) {
+        Parking parking = parkingRepository.findById(id).orElseThrow(() ->
+                new ParkingNotFoundException(id));
         parking.setExitDate(LocalDateTime.now());
-        parking.setBill(ParkingCheckOut.getBill(parking));
-        parkingRepository.save(parking);
-        return parking;
+        parking.setBill(CheckOutService.getBill(parking.getEntryDate(), parking.getExitDate()));
+        Parking parkingSaved = parkingRepository.save(parking);
+        return parkingMapper.toParkingResponse(parkingSaved);
     }
 
 }

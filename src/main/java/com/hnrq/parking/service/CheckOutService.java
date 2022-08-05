@@ -1,11 +1,9 @@
 package com.hnrq.parking.service;
 
-import com.hnrq.parking.entity.Parking;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-public class ParkingCheckOut {
+public class CheckOutService {
 
     public static final int ONE_HOUR = 60;
     public static final int TWENTY_FOUR_HOUR = 24 * ONE_HOUR;
@@ -13,11 +11,7 @@ public class ParkingCheckOut {
     public static final double ADDITIONAL_PER_HOUR_VALUE = 2.00;
     public static final double DAY_VALUE = 20.00;
 
-    public static Double getBill(Parking parking) {
-        return getBill(parking.getEntryDate(), parking.getExitDate());
-    }
-
-    private static Double getBill(LocalDateTime entryDate, LocalDateTime exitDate) {
+    public static Double getBill(LocalDateTime entryDate, LocalDateTime exitDate) {
         long minutes = entryDate.until(exitDate, ChronoUnit.MINUTES);
         Double bill = 0.0;
         if (minutes <= ONE_HOUR) {
@@ -37,6 +31,5 @@ public class ParkingCheckOut {
         }
         return bill;
     }
-
 
 }
