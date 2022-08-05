@@ -6,6 +6,8 @@ Neste projeto o desafio foi desenvolver um conjunto de API’s utilizando Spring
 
 ### É possível testar a API no link:
 https://enriq-parking.herokuapp.com/swagger-ui.html/
+Usuário: user
+Senha: User@123
 
 # Tecnologia Utilizadas
 Java 11 , Maven, Spring Web, Spring Data JPA, PostgreSQL Driver, Hibernate Validator, Lombok, IntelliJ IDEA, Postman, Github, Heroku.
