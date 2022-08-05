@@ -1,5 +1,6 @@
 package com.hnrq.parking.service;
 
+import com.hnrq.parking.exception.CheckoutHasAlreadyException;
 import com.hnrq.parking.exception.ParkingNotFoundException;
 import com.hnrq.parking.model.entity.Parking;
 import com.hnrq.parking.model.mapper.ParkingMapper;
@@ -75,10 +76,14 @@ public class ParkingService {
     public ParkingResponse checkOut(String id) {
         Parking parking = parkingRepository.findById(id).orElseThrow(() ->
                 new ParkingNotFoundException(id));
-        parking.setExitDate(LocalDateTime.now());
-        parking.setBill(CheckOutService.getBill(parking.getEntryDate(), parking.getExitDate()));
-        Parking parkingSaved = parkingRepository.save(parking);
-        return parkingMapper.toParkingResponse(parkingSaved);
+        if(parking.getExitDate() == null) {
+            parking.setExitDate(LocalDateTime.now());
+            parking.setBill(CheckOutService.getBill(parking.getEntryDate(), parking.getExitDate()));
+            parking = parkingRepository.save(parking);
+        } else {
+            throw new CheckoutHasAlreadyException();
+        }
+        return parkingMapper.toParkingResponse(parking);
     }
 
 }
